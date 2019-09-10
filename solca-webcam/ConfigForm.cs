@@ -126,7 +126,7 @@ namespace solca_webcam
             
             if (ok)
             {
-                MessageBox.Show("Conexion exitosa a " + db, "Conexion exitosa!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Conexion exitosa a: " + db, "Conexion exitosa!", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {

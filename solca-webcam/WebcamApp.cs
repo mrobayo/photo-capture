@@ -91,7 +91,7 @@ namespace solca_webcam
 
                     // 
                     String sql =
-                       @"SELECT X.PRIMER_APELLIDO || ' ' || X.SEGUNDO_APELLIDO || ' ' || INITCAP(X.PRIMER_NOMBRE) || ' ' || INITCAP(X.SEGUNDO_NOMBRE) NOMBRE_PACIENTE, 
+                       @"SELECT X.PRIMER_APELLIDO || ' ' || X.SEGUNDO_APELLIDO || ' ' || X.PRIMER_NOMBRE || ' ' || X.SEGUNDO_NOMBRE NOMBRE_PACIENTE, 
                                 CASE WHEN IMAGEN IS NULL THEN 0 ELSE LENGTH(IMAGEN) END IMAGEN_LEN, 
                                 IMAGEN
                          FROM MGA_PACIENTES_SOLCA X 
@@ -257,9 +257,49 @@ namespace solca_webcam
         /**
          * Arma la cadena de conexion
          */
-        private string buildConnectionString(String user, String pass, String db)
+        private string buildConnectionString(string user, string pass, string db)
         {
-            return "Data Source=" + db + ";User Id=" + user + ";Password=" + pass + ";";
+            // (DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(COMMUNITY=tcp.world)(PROTOCOL=TCP)(Host=192.168.73.24)(Port=1521)))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=SOLC)(SID=SOLC)))
+            if (String.IsNullOrEmpty(db))
+            {
+                return "";
+            }
+
+            string dataSource;
+            
+
+            if (db.ToUpper() == "PRODUCCION")
+            {
+                dataSource = "(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(COMMUNITY=tcp.world)(PROTOCOL=TCP)(Host=192.168.73.20)(Port=1521)))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=SOLC)))";
+            }
+            else
+            {
+                int colon = db.IndexOf(':');
+                int slash = db.IndexOf('/');
+
+                if (slash != -1)
+                {
+                    string host = db.Substring(0, (colon != -1) ? colon : slash);
+                    string serviceName = db.Substring(slash + 1);
+
+                    int port = 1521;
+                    if (colon != -1)
+                    {
+                        string sport = db.Substring(colon + 1, slash - colon - 1);
+                        Int32.TryParse(sport, out port);
+                    }
+
+                    dataSource = String.Format(
+                    @"(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(COMMUNITY=tcp.world)(PROTOCOL=TCP)(Host={0})(Port={1})))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME={2})))",
+                     host, port, serviceName);
+                }
+                else
+                {
+                    dataSource = db;
+                }
+            }
+            
+            return "Data Source=" + dataSource + ";User Id=" + user + ";Password=" + pass + ";";
         }
 
 
